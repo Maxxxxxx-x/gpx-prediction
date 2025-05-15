@@ -12,6 +12,7 @@ def connect_database() -> connection | None:
     dbName = os.getenv("DB_NAME", default=None)
 
     if not (host and port and user and password and dbName):
+        print("Missing ENV variable")
         return None
     conn_string = f'host={host} port={port} user={
         user} password={password} dbname={dbName}'
