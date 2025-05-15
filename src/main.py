@@ -1,4 +1,5 @@
 import configparser
+import os
 import dataset
 import dotenv
 import gpxpy
@@ -29,6 +30,9 @@ def get_device():
 
 
 def main() -> None:
+    if not os.path.exists("./checkpoint"):
+        os.mkdir("./checkpoint")
+
     config = get_config()
     if config is None:
         print("Failed to get config")
@@ -103,58 +107,3 @@ if __name__ == "__main__":
     dotenv.load_dotenv()
     main()
 
-"""
-def _main():
-    global GPX_COUNT
-    dotenv.load_dotenv()
-    print("Connected to the database.")
-    device = torch.device("mps" if torch.backends.mps.is_available(
-    ) else "cuda" if torch.cuda.is_available() else "cpu")
-    print(f"Using device: {device}")
-    model = dataset.TrajectoryPredictor(input_size=4).to(device)
-    if GPX_COUNT != 0:
-        checkpoint = torch.load(
-            f"./checkpoint/model_{GPX_COUNT}.pt", map_location=device)
-        model.load_state_dict(checkpoint['model_state_dict'])
-        optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
-        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-    else:
-        optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
-
-    for _ in range(500):
-        connection = db.connect_database(host, port, user, password, database)
-        if connection is None:
-            print("Failed to connect to the database.")
-            exit(1)
-        print("Preparing")
-        cursor = connection.cursor()
-        sql = f"SELECT id, rawdata FROM records WHERE distance > 400 LIMIT 1 OFFSET {
-            GPX_COUNT};"
-        cursor.execute(sql)
-        result = cursor.fetchall()
-        cursor.close()
-        for row in result:
-            print(f"Processing Id: {row[0]}")
-gpx = gpxpy.parse(row[1])
-            segment = dataset.filterGpx(gpx)
-            if segment is None:
-                print("Segment is None, skipping.")
-                GPX_COUNT += 1
-                continue
-            points = dataset.toFeature(segment)
-            sequences, targets = dataset.createSequences(points)
-
-            sequences = [seq.to(device) for seq in sequences]
-            targets = targets.to(device)
-
-            data = dataset.GPXSequenceDataset(sequences, targets)
-            dataloader = dataset.DataLoader(
-                data, batch_size=1, shuffle=True, collate_fn=dataset.collate_fn)
-            print(f"Training model for Id: {row[0]}")
-            dataset.train_model(model, dataloader)
-            GPX_COUNT += 1
-            dataset.save_checkpoint(
-                model, optimizer, 10, f"./checkpoint/model_{GPX_COUNT}.pt")
-        print("Closing connection...")
-        connection.close()
-"""
