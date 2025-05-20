@@ -1,5 +1,8 @@
 ./checkpoint
 ./checkpoint/*
+checkpoint/*
+checkpoint/
+*.gpx
 
 *.html
 
